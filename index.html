@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Izuru</title>
+<style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background-image: url('images/background_day.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Segoe UI', sans-serif;
+        padding: 10px;
+    }
+
+    .game {
+        max-width: 450px;
+        width: 100%;
+        background-image: url('images/background_day.jpg');
+        background-size: 100% 100%;
+        border-radius: 20px;
+        padding: 20px 20px 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        text-align: center;
+        position: relative;
+    }
+
+  
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+        gap: 10px;
+        padding: 5px 0;
+    }
+
+  
+    .hearts {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        padding: 6px 16px 6px 12px;
+        border-radius: 40px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        font-size: 24px;
+        font-weight: bold;
+        color: #e74c6f;
+    }
+    .hearts img {
+        width: 40px;
+        height: 40px;
+        display: block;
+    }
+    .hearts span {
+        font-size: 24px;
+        min-width: 30px;
+        text-align: center;
+    }
+
+   
+    .stats {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+        max-width: 220px;
+    }
+    .stat-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        color: #333;
+        font-weight: bold;
+    }
+    .stat-icon {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+    }
+    .bar {
+        flex: 1;
+        height: 16px;
+        background: #ffe0e6;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .bar-fill {
+        height: 100%;
+        border-radius: 20px;
+        transition: width 0.5s ease;
+    }
+    .hunger-fill { background: linear-gradient(90deg, #72d280, #3ae470); }
+    .happy-fill { background: linear-gradient(90deg, #ff80ab, #d93c73); }
+
+   
+    .character-wrapper {
+        margin: 15px 0;
+        cursor: pointer;
+    }
+    .character-wrapper img {
+        width: 80%;
+        max-width: 350px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        transition: transform 0.1s ease;
+    }
+    .character-wrapper:active img {
+        transform: scale(0.92);
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        justify-content: flex-start;
+        position: absolute;
+        padding: 5px 0 0 10px;
+        left: 2px;
+        top: 80px;
+        z-index: 20;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        font-size: 28px;
+        padding: 8px 18px;
+        border-radius: 50%;
+        width: 96px;
+        height: 96px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: 0.1s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .action-btn:active {
+        transform: scale(0.85);
+    }
+
+    .action-btn img {
+        width: 28px;
+        height: 28px;
+        display: block;
+    }
+
+    .shop-window {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(245, 225, 231, 0.95);
+        backdrop-filter: blur(5px);
+        padding: 20px 25px;
+        border-radius: 40px;
+        box-sizing: 0 10px 30px rgba(0, 0, 0, 0.15);
+        z-index: 10;
+        width: 85%;
+        max-width: 500px;
+        animation: slideUp 0.5s ease;
+    }
+
+    .shop-grid {
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .food-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 20px;
+        transition: 0.1s;
+        background: none;
+        min-width: 70px;
+    }
+
+    .food-item:active {
+        transform: scale(0.9);
+    }
+
+    .food-item img {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+    }
+
+    .food-price {
+        font-size: 14px;
+        font-weight: bold;
+        color: #a22542;
+        margin-top: 5px;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateX(-50%) translateY(30px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .bounce {
+        animation: bounceAnim 0.5s ease;
+    }
+
+    @keyframes bounceAnim {
+        0% { transform: scale(1); }
+        30% { transform: scale(0.85); }
+        60% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .flip-horizontal {
+        transform: scaleX(-1);
+    }
+
+    #nightOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(13, 5, 26, 0.7);
+    z-index: 50; 
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div class="game">
+
+   
+    <div class="top-bar">
+     
+        <div class="hearts">
+            <img src="images/heart_icon.png" alt="Сердечки">
+            <span id="heartDisplay">0</span>
+        </div>
+
+    
+        <div class="stats">
+            <div class="stat-row">
+                <span class="stat-icon">🍽️</span>
+                <div class="bar"><div id="hungerBar" class="bar-fill hunger-fill" style="width: 70%;"></div></div>
+            </div>
+            <div class="stat-row">
+                <span class="stat-icon">❤️</span>
+                <div class="bar"><div id="happyBar" class="bar-fill happy-fill" style="width: 60%;"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="action-btn" onclick="toggleSleep()">
+            <img src="images/icon_moon.png" style="width: 96px; height: 96px;">
+        </button>
+         <button class="action-btn" onclick="toggleShop()">
+            <img src="images/icon_food.png" style="width: 96px; height: 96px;">
+        </button>
+         <button class="action-btn" onclick="toggleClothers()">
+            <img src="images/icon_cloth.png" style="width: 96px; height: 96px;">
+        </button>
+    </div>
+
+    <div id="foodShop" class="shop-window" style="display: none;">
+        <div class="shop-grid">
+
+            <div class="food-item" onclick="buyFood(10, 5)">
+                <img src="images/icon_food_strawbery_15.png" alt="клубничка">
+                <span class="food-price">10
+                    <img src="images/heart_icon.png" style="width: 30px; height: 30px;">
+                </span>
+            </div>
+
+            <div class="food-item" onclick="buyFood(30, 15)">
+                <img src="images/icon_food_burger_25_5.png" alt="бургер">
+                <span class="food-price">30
+                    <img src="images/heart_icon.png" style="width: 30px; height: 30px;">
+                </span>
+            </div>
+
+            <div class="food-item" onclick="buyFood(50, 25)">
+                <img src="images/icon_food_icecream_45_15.png" alt="мороженое">
+                <span class="food-price">50
+                    <img src="images/heart_icon.png" style="width: 30px; height: 30px;">
+                </span>
+            </div>
+
+            <div class="food-item" onclick="buyFood(100, 40)">
+                <img src="images/icon_food_heart_60_20.png" alt="сердце">
+                <span class="food-price">100
+                    <img src="images/heart_icon.png" style="width: 30px; height: 30px;">
+                </span>
+            </div>
+
+        </div>
+        
+    </div>
+
+    <div id="clothesShop" class="shop-window" style="display: none;">
+        <div class="shop-grid">
+
+            <div class="food-item" onclick="buyClothes('pajamas', 200)">
+                <img src="images/icon_skin_pajama.png" alt="пижамка">
+                <span class="food-price">200
+                    <img src="images/heart_icon.png" style="width: 30px; height: 30px;">
+                </span>
+            </div>
+
+            <div class="food-item" onclick="buyClothes('kitty', 500)">
+                <img src="images/icon_skin_kitty.png" alt="котик">
+                <span class="food-price">500
+                    <img src="images/heart_icon.png" style="width: 30px; height: 30px;">
+                </span>
+            </div>
+
+            <div class="food-item" onclick="buyClothes('psycho', 1000)">
+                <img src="images/icon_skin_psycho.png" alt="больной">
+                <span class="food-price">1000
+                    <img src="images/heart_icon.png" style="width: 30px; height: 30px;">
+                </span>
+            </div>
+
+            <div class="food-item" onclick="removeSkin()">
+                <img src="images/icon_skin_none.png" alt="снять">
+                <span class="food-price"> </span>
+            </div>
+        </div>
+    </div>
+
+   
+    <div class="character-wrapper" onclick="clickCharacter()">
+        <img id="characterImg" src="images/Izuru_normal_basik.png" alt="Персонаж">
+    </div>
+    
+
+    <div id="nightOverlay"></div>
+
+</div>
+
+<script>
+    let hearts = 0;
+    let hunger = 70;
+    let happiness = 60;
+    let currentSkin = 'normal';
+    let boughtClothes = {
+        pajamas: false,
+        kitty: false,
+        psycho: false
+    }; 
+
+    function decreaseaseStats() {
+        if (isSleeping) return;
+        hunger = Math.max(0, hunger - 2);
+        happiness = Math.max(0, happiness - 2);
+        updateUI();
+    }
+
+    setInterval(decreaseaseStats, 10000);
+
+    function stopGameLoop() {
+    if (gameTimer) {
+        clearInterval(gameTimer);
+        gameTimer = null;
+    }
+}
+
+function startGameLoop() {
+    if (gameTimer) return; 
+    gameTimer = setInterval(decreaseaseStats, 10000);
+}
+
+    function clickCharacter() {
+        if (isSleeping) return;
+        hearts = hearts + 1;
+        happiness = Math.min(100, happiness + 1);
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('heartDisplay').innerText = hearts;
+        document.getElementById('hungerBar').style.width = hunger + '%';
+        document.getElementById('happyBar').style.width = happiness + '%';
+
+        updateCharacterImage();
+    }
+
+    function toggleShop() {
+        if (isSleeping) {
+            alert('Он спит и не будет есть сейчас!');
+            return;
+        }
+        let shop = document.getElementById('foodShop');
+        if (shop.style.display === 'none' || shop.style.display === '') {
+            shop.style.display = 'block';
+        } else {
+            shop.style.display = 'none';
+        }
+    }
+
+    function buyFood(price, restoreAmount) {
+        if (hearts < price) {
+            alert('Не хватает! Тапай ещё!')
+            return;
+        }
+        hearts = hearts - price;
+        hunger = Math.min(100, hunger + restoreAmount);
+        updateUI();
+        document.getElementById('foodShop').style.display = 'none';
+        eatAnimation();
+    }
+    
+    let eatInterval;
+    function eatAnimation() {
+        if (isSleeping) return;
+        let img = document.getElementById('characterImg');
+        img.classList.add('bounce');
+        let eatFrames = 0;
+        const maxFrames = 4;
+        const previousSrc = img.src;
+        if (eatInterval) clearInterval(eatInterval);
+        eatInterval = setInterval(() => {
+            if (eatFrames % 2 === 0) {
+                img.src = 'images/Izuru_eating1_' + currentSkin + '.png';
+            } else {
+                img.src = 'images/Izuru_eating2_' + currentSkin + '.png';
+            }
+            eatFrames++;
+            if (eatFrames >= maxFrames) {
+                clearInterval(eatInterval);
+                eatInterval = null;
+                updateCharacterImage();
+                img.classList.remove('bounce');
+                void img.offsetWidth;
+                img.classList.add('bounce');
+            }
+        }, 700)
+    }
+
+    function startBlinking() {
+        setInterval(() => {
+            if (isSleeping) return;
+            const img = document.getElementById('characterImg'); 
+            if (currentSkin !== 'normal'){
+                img.src = 'images/Izuru_blink_' + currentSkin + '.png';
+            } else {
+                img.src = 'images/Izuru_blink_basik.png';
+            }
+            setTimeout(() => {
+                updateCharacterImage();
+            }, 150);
+        }, 9000)
+    } 
+
+
+    function updateCharacterImage() {
+        if (isSleeping) return;
+        const img = document.getElementById('characterImg');
+        let mood = 'normal';
+        if (hunger < 20) {
+            mood = 'sad';
+        } else if (happiness < 20) {
+            mood = 'sad';
+        } else if (hunger > 90 && happiness > 90) {
+            mood = 'happy';
+        } 
+        if (currentSkin !== 'normal') {
+            img.src = 'images/Izuru_' + mood + '_' + currentSkin + '.png';
+        } else {
+            img.src = 'images/Izuru_' + mood + '_basik.png';
+        }
+ 
+    }
+
+  
+function saveGame() {
+    try {
+        localStorage.setItem('hearts', String(hearts));
+        localStorage.setItem('hunger', String(hunger));
+        localStorage.setItem('happiness', String(happiness));
+        localStorage.setItem('isSleeping', String(isSleeping));
+        localStorage.setItem('currentSkin', currentSkin);
+        localStorage.setItem('boughtClothes', JSON.stringify(boughtClothes));
+        console.log(' Игра сохранена:', { hearts, hunger, happiness, isSleeping, currentSkin, boughtClothes });
+    } catch (e) {
+        console.warn('Ошибка сохранения:', e);
+    }
+}
+
+function loadGame() {
+    try {
+    
+        const savedHearts = localStorage.getItem('hearts');
+        const savedHunger = localStorage.getItem('hunger');
+        const savedHappiness = localStorage.getItem('happiness');
+        const savedSleep = localStorage.getItem('isSleeping');
+        const savedSkin = localStorage.getItem('currentSkin');
+        const savedBought = localStorage.getItem('boughtClothes');
+
+     
+        if (savedHearts !== null) hearts = parseInt(savedHearts, 10) || 0;
+        if (savedHunger !== null) hunger = parseInt(savedHunger, 10) || 70;
+        if (savedHappiness !== null) happiness = parseInt(savedHappiness, 10) || 60;
+        if (savedSkin) currentSkin = savedSkin;
+        if (savedBought) boughtClothes = JSON.parse(savedBought);
+
+    
+        if (savedSleep === 'true') {
+            isSleeping = true;
+            document.getElementById('nightOverlay').style.opacity = '1';
+            const img = document.getElementById('characterImg');
+            if (img) {
+                img.src = 'images/Izuru_sleep_basik.png';
+                img.classList.remove('bounce');
+            }
+            stopGameLoop();
+        } else {
+            isSleeping = false;
+            document.getElementById('nightOverlay').style.opacity = '0';
+            startGameLoop();
+        }
+
+        updateUI();
+        console.log(' Игра загружена:', { hearts, hunger, happiness, isSleeping, currentSkin, boughtClothes });
+
+    } catch (e) {
+        console.warn('Ошибка загрузки:', e);
+        hearts = 0;
+        hunger = 70;
+        happiness = 60;
+        currentSkin = 'normal';
+        isSleeping = false;
+        updateUI();
+    }
+}
+
+let isSleeping = false;
+let gameTimer = null; 
+
+
+function toggleSleep() {
+    const overlay = document.getElementById('nightOverlay');
+    const img = document.getElementById('characterImg');
+
+    if (isSleeping) {
+        isSleeping = false;
+        overlay.style.opacity = '0';
+        updateCharacterImage(); 
+        startGameLoop(); 
+        console.log('Доброе утро');
+    } else {
+        isSleeping = true;
+         if (currentSkin !== 'normal'){
+                img.src = 'images/Izuru_sleep_' + currentSkin + '.png';
+            } else {
+                img.src = 'images/Izuru_sleep_basik.png';
+            }
+        img.classList.remove('bounce');
+        overlay.style.opacity = '1';
+        stopGameLoop(); 
+        console.log('Спокойной ночи...');
+    }
+}
+
+function toggleClothers() {
+    if (isSleeping) {
+        alert('Он ещё спит. Переоденемся утром. . .');
+        return;
+    }
+    const shop = document.getElementById('clothesShop');
+    if (shop.style.display === 'none' || shop.style.display === '') {
+        shop.style.display = 'block';
+        document.getElementById('foodShop').style.display = 'none';
+    } else {
+        shop.style.display = 'none';
+    }
+}
+
+function buyClothes(skinName, price) {
+    if (isSleeping) {
+        alert('Не сейчас, он спит');
+        return;
+    }
+    const img = document.getElementById('characterImg');
+    if (boughtClothes[skinName]) {
+        currentSkin = skinName;
+        img.src = 'images/Izuru_normal_' + skinName + '.png';
+        img.classList.remove('bounce');
+        void img.offsetWidth;
+        img.classList.add('bounce');
+        document.getElementById('clothesShop').style.display = 'none';
+        return;
+    }
+    if (hearts < price) {
+        alert ('Не хватает, тапай ещё!')
+        return;
+    }
+    hearts = hearts - price;
+    boughtClothes[skinName] = true;
+    currentSkin = skinName;
+    img.src = 'images/Izuru_normal_' + skinName + '.png';
+    img.classList.remove('bounce');
+    void img.offsetWidth;
+    img.classList.add('bounce');
+    document.getElementById('clothesShop').style.display = 'none';
+    updateUI();
+
+   const priceElement = document.querySelector(`#clothesShop .food-item[onclick*="${skinName}"] .food-price`);
+if (priceElement) {
+    priceElement.innerHTML = '✅';
+}
+}
+
+function removeSkin() {
+    if (isSleeping) {
+        alert('Не сейчас, он спит');
+        return;
+    }
+    const img = document.getElementById('characterImg');
+    currentSkin = 'normal';
+    updateCharacterImage();
+    img.classList.remove('bounce');
+    document.getElementById('clothesShop').style.display = 'none';
+    console.log('скин снят');
+}
+
+
+    setInterval(saveGame, 1000);
+    loadGame();
+
+    startBlinking();
+    updateUI();
+</script>
+
+</body>
+</html>
