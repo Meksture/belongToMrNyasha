@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Izuru</title>
 <style>
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
     body {
         margin: 0;
         min-height: 100vh;
-        background-image: url('images/background_day.jpg');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
+        background-color: #efb3c7;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -122,7 +122,7 @@
     .action-buttons {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 16px;
         justify-content: flex-start;
         position: absolute;
         padding: 5px 0 0 10px;
@@ -137,8 +137,8 @@
         font-size: 28px;
         padding: 8px 18px;
         border-radius: 50%;
-        width: 96px;
-        height: 96px;
+        width: 48px;
+        height: 48px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         cursor: pointer;
         transition: 0.1s;
@@ -152,24 +152,24 @@
     }
 
     .action-btn img {
-        width: 28px;
-        height: 28px;
+        width: 48px;
+        height: 48px;
         display: block;
     }
 
     .shop-window {
         position: fixed;
-        bottom: 10px;
+        bottom: 5px;
         left: 50%;
         transform: translateX(-50%);
         background: rgba(245, 225, 231, 0.95);
         backdrop-filter: blur(5px);
-        padding: 20px 25px;
+        padding: 12px 16px;
         border-radius: 40px;
         box-sizing: 0 10px 30px rgba(0, 0, 0, 0.15);
         z-index: 10;
         width: 85%;
-        max-width: 500px;
+        max-width: 400px;
         animation: slideUp 0.5s ease;
     }
 
@@ -185,11 +185,11 @@
         flex-direction: column;
         align-items: center;
         cursor: pointer;
-        padding: 8px;
+        padding: 4px;
         border-radius: 20px;
         transition: 0.1s;
         background: none;
-        min-width: 70px;
+        min-width: 50px;
     }
 
     .food-item:active {
@@ -197,13 +197,13 @@
     }
 
     .food-item img {
-        width: 90px;
-        height: 90px;
+        width: 60px;
+        height: 60px;
         object-fit: contain;
     }
 
     .food-price {
-        font-size: 14px;
+        font-size: 12px;
         font-weight: bold;
         color: #a22542;
         margin-top: 5px;
@@ -270,13 +270,13 @@
 
     <div class="action-buttons">
         <button class="action-btn" onclick="toggleSleep()">
-            <img src="images/icon_moon.png" style="width: 96px; height: 96px;">
+            <img src="images/icon_moon.png" style="width: 64px; height: 64px;">
         </button>
          <button class="action-btn" onclick="toggleShop()">
-            <img src="images/icon_food.png" style="width: 96px; height: 96px;">
+            <img src="images/icon_food.png" style="width: 64px; height: 64px;">
         </button>
          <button class="action-btn" onclick="toggleClothers()">
-            <img src="images/icon_cloth.png" style="width: 96px; height: 96px;">
+            <img src="images/icon_cloth.png" style="width: 64px; height: 64px;">
         </button>
     </div>
 
@@ -430,30 +430,34 @@ function startGameLoop() {
     
     let eatInterval;
     function eatAnimation() {
-        if (isSleeping) return;
-        let img = document.getElementById('characterImg');
-        img.classList.add('bounce');
-        let eatFrames = 0;
-        const maxFrames = 4;
-        const previousSrc = img.src;
-        if (eatInterval) clearInterval(eatInterval);
-        eatInterval = setInterval(() => {
-            if (eatFrames % 2 === 0) {
-                img.src = 'images/Izuru_eating1_' + currentSkin + '.png';
-            } else {
-                img.src = 'images/Izuru_eating2_' + currentSkin + '.png';
-            }
-            eatFrames++;
-            if (eatFrames >= maxFrames) {
-                clearInterval(eatInterval);
-                eatInterval = null;
-                updateCharacterImage();
-                img.classList.remove('bounce');
-                void img.offsetWidth;
-                img.classList.add('bounce');
-            }
-        }, 700)
-    }
+    if (isSleeping) return;
+    let img = document.getElementById('characterImg');
+    img.classList.add('bounce');
+    let eatFrames = 0;
+    const maxFrames = 4;
+    
+    if (eatInterval) clearInterval(eatInterval);
+    eatInterval = setInterval(() => {
+  
+        let skinSuffix = (currentSkin !== 'normal') ? '_' + currentSkin : '_basik';
+        
+        if (eatFrames % 2 === 0) {
+            img.src = 'images/Izuru_eating1' + skinSuffix + '.png';
+        } else {
+            img.src = 'images/Izuru_eating2' + skinSuffix + '.png';
+        }
+        eatFrames++;
+        
+        if (eatFrames >= maxFrames) {
+            clearInterval(eatInterval);
+            eatInterval = null;
+            updateCharacterImage();
+            img.classList.remove('bounce');
+            void img.offsetWidth;
+            img.classList.add('bounce');
+        }
+    }, 700);
+}
 
     function startBlinking() {
         setInterval(() => {
