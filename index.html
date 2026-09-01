@@ -542,6 +542,7 @@ function loadGame() {
             startGameLoop();
         }
 
+        updateClothesPrices();
         updateUI();
         console.log(' Игра загружена:', { hearts, hunger, happiness, isSleeping, currentSkin, boughtClothes });
 
@@ -644,6 +645,19 @@ function removeSkin() {
     img.classList.remove('bounce');
     document.getElementById('clothesShop').style.display = 'none';
     console.log('скин снят');
+}
+
+function updateClothesPrices() {
+   
+    for (const [skin, isBought] of Object.entries(boughtClothes)) {
+        if (isBought) {
+            
+            const priceElement = document.querySelector(`#clothesShop .food-item[onclick*="${skin}"] .food-price`);
+            if (priceElement) {
+                priceElement.innerHTML = '✅';  
+            }
+        }
+    }
 }
 
 
