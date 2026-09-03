@@ -388,7 +388,7 @@
 </div>
 
 <script>
-    // ================== ПЕРЕМЕННЫЕ ==================
+
     let hearts = 0;
     let hunger = 70;
     let happiness = 60;
@@ -402,7 +402,6 @@
     let gameTimer = null;
     let eatInterval;
 
-    // ================== ТАЙМЕР ШКАЛ ==================
     function decreaseaseStats() {
         if (isSleeping) return;
         hunger = Math.max(0, hunger - 2);
@@ -423,7 +422,6 @@
         gameTimer = setInterval(decreaseaseStats, 10000);
     }
 
-    // ================== КЛИК ПО ПЕРСОНАЖУ ==================
     function clickCharacter() {
         if (isSleeping) return;
         hearts = hearts + 1;
@@ -431,7 +429,6 @@
         updateUI();
     }
 
-    // ================== ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ==================
     function updateUI() {
         document.getElementById('heartDisplay').innerText = hearts;
         document.getElementById('hungerBar').style.width = hunger + '%';
@@ -439,7 +436,6 @@
         updateCharacterImage();
     }
 
-    // ================== МАГАЗИН ЕДЫ ==================
     function toggleShop() {
         if (isSleeping) {
             alert('Он спит и не будет есть сейчас!');
@@ -466,7 +462,6 @@
         eatAnimation();
     }
 
-    // ================== АНИМАЦИЯ ЕДЫ ==================
     function eatAnimation() {
         if (isSleeping) return;
         let img = document.getElementById('characterImg');
@@ -494,7 +489,6 @@
         }, 700);
     }
 
-    // ================== МОРГАНИЕ ==================
     function startBlinking() {
         setInterval(() => {
             if (isSleeping) return;
@@ -510,13 +504,17 @@
         }, 9000);
     }
 
-    // ================== ЭМОЦИИ И СКИНЫ ==================
     function updateCharacterImage() {
-        if (isSleeping && !isPetting) return;
+        if (isSleeping && isPetting) {
+            return;
+        }
+        if (isSleeping && !isPetting) {
+            return;
+        }
         const img = document.getElementById('characterImg');
         let mood = 'normal';
 
-        if (isPetting) {
+        if (isPetting && !isSleeping) {
             mood = 'happy';
         } else {
             if (hunger < 20) mood = 'sad';
@@ -531,7 +529,6 @@
         }
     }
 
-    // ================== СОХРАНЕНИЕ ==================
     function saveGame() {
         try {
             localStorage.setItem('hearts', String(hearts));
@@ -590,7 +587,7 @@
         }
     }
 
-    // ================== СОН ==================
+
     function toggleSleep() {
         const overlay = document.getElementById('nightOverlay');
         const img = document.getElementById('characterImg');
@@ -615,7 +612,7 @@
         }
     }
 
-    // ================== МАГАЗИН ОДЕЖДЫ ==================
+
     function toggleClothers() {
         if (isSleeping) {
             alert('Он ещё спит. Переоденемся утром...');
@@ -691,26 +688,25 @@
         }
     }
 
-    // ================== ПОГЛАЖИВАНИЕ (С ЗАДЕРЖКОЙ) ==================
+
     let petInterval;
     let isPetting = false;
     let petTimer = null;
-    let petStartCoords = null; // Запоминаем координаты для startPet
+    let petStartCoords = null; 
 
-    // Запускается при нажатии (mousedown / touchstart)
+
     function startPetTimer(event) {
-        // Отменяем старый таймер
+
         if (petTimer) clearTimeout(petTimer);
         
-        // Запоминаем координаты (на случай, если таймер сработает)
         petStartCoords = { clientX: event.clientX, clientY: event.clientY };
         
-        // Устанавливаем флаг, что палец/мышь зажаты
+  
         isPetting = true;
 
-        // Запускаем таймер на 800 мс
+
         petTimer = setTimeout(() => {
-            // Если палец/мышь всё ещё зажаты — запускаем поглаживание
+
             if (isPetting && petStartCoords) {
                 startPet(petStartCoords);
             }
@@ -718,21 +714,18 @@
         }, 800);
     }
 
-    // Для телефона (передаём палец)
     function startPetTimerTouch(event) {
         const touch = event.touches[0];
         startPetTimer({ clientX: touch.clientX, clientY: touch.clientY });
     }
 
-    // Отмена таймера и завершение поглаживания
     function cancelPetTimer() {
-        // Отменяем таймер
+
         if (petTimer) {
             clearTimeout(petTimer);
             petTimer = null;
         }
         
-        // Если поглаживание активно — завершаем его
         if (isPetting) {
             endPet();
         }
@@ -740,17 +733,11 @@
         petStartCoords = null;
     }
 
-    // Начало поглаживания (вызывается только через 800 мс зажатия)
+
     function startPet(coords) {
-        // Если уже гладим — не дублируем
+
         if (petInterval) return;
 
-        // Показываем ручку
-        const hand = document.getElementById('petHand');
-        hand.style.display = 'block';
-        updatePetPosition(coords.clientX, coords.clientY);
-
-        // Меняем лицо на счастливое (ТОЛЬКО если НЕ спит)
         if (!isSleeping) {
             const img = document.getElementById('characterImg');
             if (currentSkin !== 'normal') {
@@ -760,14 +747,17 @@
             }
         }
 
-        // Запускаем набор счастья (каждые 500 мс)
+         const hand = document.getElementById('petHand');
+        hand.style.display = 'block';
+        updatePetPosition(coords.clientX, coords.clientY);
+
         petInterval = setInterval(() => {
             happiness = Math.min(100, happiness + 1);
             updateUI();
         }, 500);
     }
 
-    // Движение мыши/пальца (обновляем позицию ручки)
+
     function movePet(event) {
         if (!isPetting) return;
         updatePetPosition(event.clientX, event.clientY);
@@ -779,7 +769,7 @@
         updatePetPosition(touch.clientX, touch.clientY);
     }
 
-    // Завершение поглаживания
+
     function endPet() {
         isPetting = false;
         if (petInterval) {
@@ -790,15 +780,14 @@
         updateCharacterImage();
     }
 
-    // Обновление позиции ладошки
     function updatePetPosition(x, y) {
         const hand = document.getElementById('petHand');
         hand.style.left = (x - 30) + 'px';
-        hand.style.top = (y - 60) + 'px';
+        hand.style.top = (y - 120) + 'px';
         hand.style.transform = 'none';
     }
 
-    // ================== ЗАПУСК ==================
+
     setInterval(saveGame, 1000);
     loadGame();
     startBlinking();
