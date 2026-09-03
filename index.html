@@ -240,7 +240,25 @@
     opacity: 0;
     transition: opacity 0.8s ease;
     pointer-events: none;
-}
+    }
+
+    @keyframes floatPet {
+        0% { transform: translateY(0) rotate(-10deg) scale(1); }
+        100% { transform: translateY(-30px) rotate(10deg) scale(1.1); } 
+    }
+
+    #petHand {
+        position: fixed;
+        z-index: 15;
+        pointer-events: none;
+        display: none;
+    }
+
+    #petHand img {
+        width: 60px;
+        height: auto;
+        animation: floatPet 0.6s ease-in-out infinite alternate;
+    }
 </style>
 </head>
 <body>
@@ -347,9 +365,22 @@
     </div>
 
    
-    <div class="character-wrapper" onclick="clickCharacter()">
-        <img id="characterImg" src="images/Izuru_normal_basik.png" alt="Персонаж">
+   <div class="character-wrapper" 
+     onclick="clickCharacter()"
+     onmousedown="startPetTimer(event)" 
+     onmousemove="movePet(event)"
+     onmouseup="cancelPetTimer()" 
+     onmouseleave="cancelPetTimer()"
+     ontouchstart="startPetTimerTouch(event)" 
+     ontouchmove="movePetTouch(event)"
+     ontouchend="cancelPetTimer()">
+    <img id="characterImg" src="images/Izuru_normal_basik.png" alt="Персонаж">
+</div>
+
+    <div id="petHand" style="display: none; position:absolute; z-index: 15; pointer-events: none;">
+        <img src="images/icon_petpet.png" style="width: 90px; height: 90px; animation: floatPet 0.8s ease infinite alternate;">
     </div>
+    
     
 
     <div id="nightOverlay"></div>
@@ -357,6 +388,7 @@
 </div>
 
 <script>
+ 
     let hearts = 0;
     let hunger = 70;
     let happiness = 60;
@@ -365,7 +397,10 @@
         pajamas: false,
         kitty: false,
         psycho: false
-    }; 
+    };
+    let isSleeping = false;
+    let gameTimer = null;
+    let eatInterval;
 
     function decreaseaseStats() {
         if (isSleeping) return;
@@ -373,20 +408,19 @@
         happiness = Math.max(0, happiness - 2);
         updateUI();
     }
-
     setInterval(decreaseaseStats, 10000);
 
     function stopGameLoop() {
-    if (gameTimer) {
-        clearInterval(gameTimer);
-        gameTimer = null;
+        if (gameTimer) {
+            clearInterval(gameTimer);
+            gameTimer = null;
+        }
     }
-}
 
-function startGameLoop() {
-    if (gameTimer) return; 
-    gameTimer = setInterval(decreaseaseStats, 10000);
-}
+    function startGameLoop() {
+        if (gameTimer) return;
+        gameTimer = setInterval(decreaseaseStats, 10000);
+    }
 
     function clickCharacter() {
         if (isSleeping) return;
@@ -395,13 +429,14 @@ function startGameLoop() {
         updateUI();
     }
 
+  
     function updateUI() {
         document.getElementById('heartDisplay').innerText = hearts;
         document.getElementById('hungerBar').style.width = hunger + '%';
         document.getElementById('happyBar').style.width = happiness + '%';
-
         updateCharacterImage();
     }
+
 
     function toggleShop() {
         if (isSleeping) {
@@ -411,6 +446,7 @@ function startGameLoop() {
         let shop = document.getElementById('foodShop');
         if (shop.style.display === 'none' || shop.style.display === '') {
             shop.style.display = 'block';
+            document.getElementById('clothesShop').style.display = 'none';
         } else {
             shop.style.display = 'none';
         }
@@ -418,7 +454,7 @@ function startGameLoop() {
 
     function buyFood(price, restoreAmount) {
         if (hearts < price) {
-            alert('Не хватает! Тапай ещё!')
+            alert('Не хватает! Тапай ещё!');
             return;
         }
         hearts = hearts - price;
@@ -427,43 +463,40 @@ function startGameLoop() {
         document.getElementById('foodShop').style.display = 'none';
         eatAnimation();
     }
-    
-    let eatInterval;
-    function eatAnimation() {
-    if (isSleeping) return;
-    let img = document.getElementById('characterImg');
-    img.classList.add('bounce');
-    let eatFrames = 0;
-    const maxFrames = 4;
-    
-    if (eatInterval) clearInterval(eatInterval);
-    eatInterval = setInterval(() => {
+
   
-        let skinSuffix = (currentSkin !== 'normal') ? '_' + currentSkin : '_basik';
-        
-        if (eatFrames % 2 === 0) {
-            img.src = 'images/Izuru_eating1' + skinSuffix + '.png';
-        } else {
-            img.src = 'images/Izuru_eating2' + skinSuffix + '.png';
-        }
-        eatFrames++;
-        
-        if (eatFrames >= maxFrames) {
-            clearInterval(eatInterval);
-            eatInterval = null;
-            updateCharacterImage();
-            img.classList.remove('bounce');
-            void img.offsetWidth;
-            img.classList.add('bounce');
-        }
-    }, 700);
-}
+    function eatAnimation() {
+        if (isSleeping) return;
+        let img = document.getElementById('characterImg');
+        img.classList.add('bounce');
+        let eatFrames = 0;
+        const maxFrames = 4;
+
+        if (eatInterval) clearInterval(eatInterval);
+        eatInterval = setInterval(() => {
+            let skinSuffix = (currentSkin !== 'normal') ? '_' + currentSkin : '_basik';
+            if (eatFrames % 2 === 0) {
+                img.src = 'images/Izuru_eating1' + skinSuffix + '.png';
+            } else {
+                img.src = 'images/Izuru_eating2' + skinSuffix + '.png';
+            }
+            eatFrames++;
+            if (eatFrames >= maxFrames) {
+                clearInterval(eatInterval);
+                eatInterval = null;
+                updateCharacterImage();
+                img.classList.remove('bounce');
+                void img.offsetWidth;
+                img.classList.add('bounce');
+            }
+        }, 700);
+    }
 
     function startBlinking() {
         setInterval(() => {
             if (isSleeping) return;
-            const img = document.getElementById('characterImg'); 
-            if (currentSkin !== 'normal'){
+            const img = document.getElementById('characterImg');
+            if (currentSkin !== 'normal') {
                 img.src = 'images/Izuru_blink_' + currentSkin + '.png';
             } else {
                 img.src = 'images/Izuru_blink_basik.png';
@@ -471,199 +504,284 @@ function startGameLoop() {
             setTimeout(() => {
                 updateCharacterImage();
             }, 150);
-        }, 9000)
-    } 
+        }, 9000);
+    }
 
-
+  
     function updateCharacterImage() {
-        if (isSleeping) return;
+        if (isSleeping && !isPetting) return;
         const img = document.getElementById('characterImg');
         let mood = 'normal';
-        if (hunger < 20) {
-            mood = 'sad';
-        } else if (happiness < 20) {
-            mood = 'sad';
-        } else if (hunger > 90 && happiness > 90) {
+
+        if (isPetting) {
             mood = 'happy';
-        } 
+        } else {
+            if (hunger < 20) mood = 'sad';
+            else if (happiness < 20) mood = 'sad';
+            else if (hunger > 90 && happiness > 90) mood = 'happy';
+        }
+
         if (currentSkin !== 'normal') {
             img.src = 'images/Izuru_' + mood + '_' + currentSkin + '.png';
         } else {
             img.src = 'images/Izuru_' + mood + '_basik.png';
         }
- 
     }
 
-  
-function saveGame() {
-    try {
-        localStorage.setItem('hearts', String(hearts));
-        localStorage.setItem('hunger', String(hunger));
-        localStorage.setItem('happiness', String(happiness));
-        localStorage.setItem('isSleeping', String(isSleeping));
-        localStorage.setItem('currentSkin', currentSkin);
-        localStorage.setItem('boughtClothes', JSON.stringify(boughtClothes));
-        console.log(' Игра сохранена:', { hearts, hunger, happiness, isSleeping, currentSkin, boughtClothes });
-    } catch (e) {
-        console.warn('Ошибка сохранения:', e);
-    }
-}
 
-function loadGame() {
-    try {
-    
-        const savedHearts = localStorage.getItem('hearts');
-        const savedHunger = localStorage.getItem('hunger');
-        const savedHappiness = localStorage.getItem('happiness');
-        const savedSleep = localStorage.getItem('isSleeping');
-        const savedSkin = localStorage.getItem('currentSkin');
-        const savedBought = localStorage.getItem('boughtClothes');
-
-     
-        if (savedHearts !== null) hearts = parseInt(savedHearts, 10) || 0;
-        if (savedHunger !== null) hunger = parseInt(savedHunger, 10) || 70;
-        if (savedHappiness !== null) happiness = parseInt(savedHappiness, 10) || 60;
-        if (savedSkin) currentSkin = savedSkin;
-        if (savedBought) boughtClothes = JSON.parse(savedBought);
-
-    
-        if (savedSleep === 'true') {
-            isSleeping = true;
-            document.getElementById('nightOverlay').style.opacity = '1';
-            const img = document.getElementById('characterImg');
-            if (img) {
-                img.src = 'images/Izuru_sleep_basik.png';
-                img.classList.remove('bounce');
-            }
-            stopGameLoop();
-        } else {
-            isSleeping = false;
-            document.getElementById('nightOverlay').style.opacity = '0';
-            startGameLoop();
+    function saveGame() {
+        try {
+            localStorage.setItem('hearts', String(hearts));
+            localStorage.setItem('hunger', String(hunger));
+            localStorage.setItem('happiness', String(happiness));
+            localStorage.setItem('isSleeping', String(isSleeping));
+            localStorage.setItem('currentSkin', currentSkin);
+            localStorage.setItem('boughtClothes', JSON.stringify(boughtClothes));
+            console.log('Игра сохранена:', { hearts, hunger, happiness, isSleeping, currentSkin, boughtClothes });
+        } catch (e) {
+            console.warn('Ошибка сохранения:', e);
         }
-
-        updateClothesPrices();
-        updateUI();
-        console.log(' Игра загружена:', { hearts, hunger, happiness, isSleeping, currentSkin, boughtClothes });
-
-    } catch (e) {
-        console.warn('Ошибка загрузки:', e);
-        hearts = 0;
-        hunger = 70;
-        happiness = 60;
-        currentSkin = 'normal';
-        isSleeping = false;
-        updateUI();
     }
-}
 
-let isSleeping = false;
-let gameTimer = null; 
+    function loadGame() {
+        try {
+            const savedHearts = localStorage.getItem('hearts');
+            const savedHunger = localStorage.getItem('hunger');
+            const savedHappiness = localStorage.getItem('happiness');
+            const savedSleep = localStorage.getItem('isSleeping');
+            const savedSkin = localStorage.getItem('currentSkin');
+            const savedBought = localStorage.getItem('boughtClothes');
 
+            if (savedHearts !== null) hearts = parseInt(savedHearts, 10) || 0;
+            if (savedHunger !== null) hunger = parseInt(savedHunger, 10) || 70;
+            if (savedHappiness !== null) happiness = parseInt(savedHappiness, 10) || 60;
+            if (savedSkin) currentSkin = savedSkin;
+            if (savedBought) boughtClothes = JSON.parse(savedBought);
 
-function toggleSleep() {
-    const overlay = document.getElementById('nightOverlay');
-    const img = document.getElementById('characterImg');
+            if (savedSleep === 'true') {
+                isSleeping = true;
+                document.getElementById('nightOverlay').style.opacity = '1';
+                const img = document.getElementById('characterImg');
+                if (img) {
+                    img.src = 'images/Izuru_sleep_basik.png';
+                    img.classList.remove('bounce');
+                }
+                stopGameLoop();
+            } else {
+                isSleeping = false;
+                document.getElementById('nightOverlay').style.opacity = '0';
+                startGameLoop();
+            }
 
-    if (isSleeping) {
-        isSleeping = false;
-        overlay.style.opacity = '0';
-        updateCharacterImage(); 
-        startGameLoop(); 
-        console.log('Доброе утро');
-    } else {
-        isSleeping = true;
-         if (currentSkin !== 'normal'){
+            updateClothesPrices();
+            updateUI();
+            console.log('Игра загружена:', { hearts, hunger, happiness, isSleeping, currentSkin, boughtClothes });
+        } catch (e) {
+            console.warn('Ошибка загрузки:', e);
+            hearts = 0;
+            hunger = 70;
+            happiness = 60;
+            currentSkin = 'normal';
+            isSleeping = false;
+            updateUI();
+        }
+    }
+
+    function toggleSleep() {
+        const overlay = document.getElementById('nightOverlay');
+        const img = document.getElementById('characterImg');
+
+        if (isSleeping) {
+            isSleeping = false;
+            overlay.style.opacity = '0';
+            updateCharacterImage();
+            startGameLoop();
+            console.log('Доброе утро');
+        } else {
+            isSleeping = true;
+            if (currentSkin !== 'normal') {
                 img.src = 'images/Izuru_sleep_' + currentSkin + '.png';
             } else {
                 img.src = 'images/Izuru_sleep_basik.png';
             }
-        img.classList.remove('bounce');
-        overlay.style.opacity = '1';
-        stopGameLoop(); 
-        console.log('Спокойной ночи...');
+            img.classList.remove('bounce');
+            overlay.style.opacity = '1';
+            stopGameLoop();
+            console.log('Спокойной ночи...');
+        }
     }
-}
 
-function toggleClothers() {
-    if (isSleeping) {
-        alert('Он ещё спит. Переоденемся утром. . .');
-        return;
-    }
-    const shop = document.getElementById('clothesShop');
-    if (shop.style.display === 'none' || shop.style.display === '') {
-        shop.style.display = 'block';
-        document.getElementById('foodShop').style.display = 'none';
-    } else {
-        shop.style.display = 'none';
-    }
-}
 
-function buyClothes(skinName, price) {
-    if (isSleeping) {
-        alert('Не сейчас, он спит');
-        return;
+    function toggleClothers() {
+        if (isSleeping) {
+            alert('Он ещё спит. Переоденемся утром...');
+            return;
+        }
+        const shop = document.getElementById('clothesShop');
+        if (shop.style.display === 'none' || shop.style.display === '') {
+            shop.style.display = 'block';
+            document.getElementById('foodShop').style.display = 'none';
+        } else {
+            shop.style.display = 'none';
+        }
     }
-    const img = document.getElementById('characterImg');
-    if (boughtClothes[skinName]) {
+
+    function buyClothes(skinName, price) {
+        if (isSleeping) {
+            alert('Не сейчас, он спит');
+            return;
+        }
+        const img = document.getElementById('characterImg');
+        if (boughtClothes[skinName]) {
+            currentSkin = skinName;
+            img.src = 'images/Izuru_normal_' + skinName + '.png';
+            img.classList.remove('bounce');
+            void img.offsetWidth;
+            img.classList.add('bounce');
+            document.getElementById('clothesShop').style.display = 'none';
+            return;
+        }
+        if (hearts < price) {
+            alert('Не хватает, тапай ещё!');
+            return;
+        }
+        hearts = hearts - price;
+        boughtClothes[skinName] = true;
         currentSkin = skinName;
         img.src = 'images/Izuru_normal_' + skinName + '.png';
         img.classList.remove('bounce');
         void img.offsetWidth;
         img.classList.add('bounce');
         document.getElementById('clothesShop').style.display = 'none';
-        return;
-    }
-    if (hearts < price) {
-        alert ('Не хватает, тапай ещё!')
-        return;
-    }
-    hearts = hearts - price;
-    boughtClothes[skinName] = true;
-    currentSkin = skinName;
-    img.src = 'images/Izuru_normal_' + skinName + '.png';
-    img.classList.remove('bounce');
-    void img.offsetWidth;
-    img.classList.add('bounce');
-    document.getElementById('clothesShop').style.display = 'none';
-    updateUI();
+        updateUI();
 
-   const priceElement = document.querySelector(`#clothesShop .food-item[onclick*="${skinName}"] .food-price`);
-if (priceElement) {
-    priceElement.innerHTML = '✅';
-}
-}
-
-function removeSkin() {
-    if (isSleeping) {
-        alert('Не сейчас, он спит');
-        return;
+        const priceElement = document.querySelector(`#clothesShop .food-item[onclick*="${skinName}"] .food-price`);
+        if (priceElement) {
+            priceElement.innerHTML = '✅';
+        }
+        saveGame();
     }
-    const img = document.getElementById('characterImg');
-    currentSkin = 'normal';
-    updateCharacterImage();
-    img.classList.remove('bounce');
-    document.getElementById('clothesShop').style.display = 'none';
-    console.log('скин снят');
-}
 
-function updateClothesPrices() {
-   
-    for (const [skin, isBought] of Object.entries(boughtClothes)) {
-        if (isBought) {
-            
-            const priceElement = document.querySelector(`#clothesShop .food-item[onclick*="${skin}"] .food-price`);
-            if (priceElement) {
-                priceElement.innerHTML = '✅';  
+    function removeSkin() {
+        if (isSleeping) {
+            alert('Не сейчас, он спит');
+            return;
+        }
+        const img = document.getElementById('characterImg');
+        currentSkin = 'normal';
+        updateCharacterImage();
+        img.classList.remove('bounce');
+        document.getElementById('clothesShop').style.display = 'none';
+        console.log('скин снят');
+        saveGame();
+    }
+
+    function updateClothesPrices() {
+        for (const [skin, isBought] of Object.entries(boughtClothes)) {
+            if (isBought) {
+                const priceElement = document.querySelector(`#clothesShop .food-item[onclick*="${skin}"] .food-price`);
+                if (priceElement) {
+                    priceElement.innerHTML = '✅';
+                }
             }
         }
     }
-}
 
+    let petInterval;
+    let isPetting = false;
+    let petTimer = null; 
+
+   
+    function startPetTimer(event) {
+  
+        if (petTimer) clearTimeout(petTimer);
+
+      
+        petTimer = setTimeout(() => {
+          
+            if (isPetting) {
+                startPet(event);
+            }
+            petTimer = null;
+        }, 2000);
+    }
+
+   
+    function cancelPetTimer() {
+        if (petTimer) {
+            clearTimeout(petTimer);
+            petTimer = null;
+        }
+      
+        if (isPetting) {
+            endPet();
+        }
+    }
+
+  
+    function startPet(event) {
+        isPetting = true;
+
+      
+        const hand = document.getElementById('petHand');
+        hand.style.display = 'block';
+        updatePetPosition(event.clientX, event.clientY);
+
+     
+        if (!isSleeping) {
+            const img = document.getElementById('characterImg');
+            if (currentSkin !== 'normal') {
+                img.src = 'images/Izuru_happy_' + currentSkin + '.png';
+            } else {
+                img.src = 'images/Izuru_happy_basik.png';
+            }
+        }
+
+     
+        if (petInterval) clearInterval(petInterval);
+        petInterval = setInterval(() => {
+            happiness = Math.min(100, happiness + 1);
+            updateUI();
+        }, 2000);
+    }
+
+  
+    function startPetTimerTouch(event) {
+        const touch = event.touches[0];
+     
+        startPetTimer({ clientX: touch.clientX, clientY: touch.clientY });
+    }
+
+    function movePet(event) {
+        if (!isPetting) return;
+        updatePetPosition(event.clientX, event.clientY);
+    }
+
+    function movePetTouch(event) {
+        if (!isPetting) return;
+        const touch = event.touches[0];
+        updatePetPosition(touch.clientX, touch.clientY);
+    }
+
+    
+    function endPet() {
+        isPetting = false;
+        clearInterval(petInterval);
+        petInterval = null;
+        document.getElementById('petHand').style.display = 'none';
+        updateCharacterImage();
+    }
+
+    
+    function updatePetPosition(x, y) {
+        const hand = document.getElementById('petHand');
+        hand.style.left = (x - 10) + 'px';
+        hand.style.top = (y - 20) + 'px';
+        hand.style.transform = 'none';
+    }
 
     setInterval(saveGame, 1000);
     loadGame();
-
     startBlinking();
     updateUI();
 </script>
