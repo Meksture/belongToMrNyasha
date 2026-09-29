@@ -435,15 +435,13 @@
 </div>
 
     <div id="gamesShop" class="shop-window" style="display: none;">
-        <div class="shop-grid">
-            <div class="food-item" onclick="buyGame('wheel', 300)">
-                <img src="images/icon_wheel.png" alt="колесо">
-                <span class="food-price" id="gamePrice_wheel">300
-                    <img src="images/heart_icon.png" style="width: 30px; height: 30px;">
-                </span>
-            </div>
-        </div>
+    <div class="shop-grid" id="gamesGrid"></div>
+    <div class="shop-nav">
+        <button onclick="prevGamesPage()">◀</button>
+        <span id="gamesPageIndicator">1 / 1</span>
+        <button onclick="nextGamesPage()">▶</button>
     </div>
+</div>
    
    <div class="character-wrapper" 
      onclick="clickCharacter()"
@@ -515,6 +513,13 @@
     { id: 'psycho', price: 1000, icon: 'icon_skin_psycho.png', name: 'Больной' },
     { id: 'wheel', price: 0, icon: 'icon_skin_wheel.png', name: 'Колесо' },
 ];
+    let allGames = [
+    { id: 'wheel', price: 300, icon: 'icon_wheel.png', name: 'Колесо фортуны' },
+
+];
+
+let gamesPage = 0;
+const GAMES_PER_PAGE = 3;
 
     let clothesPage = 0;
     const CLOTHES_PER_PAGE = 3;
@@ -522,8 +527,8 @@
     let gameTimer = null;
     let eatInterval;
     let boughtGames = {
-        wheel: false,
-    };
+    wheel: false,
+};
 
     function closeAllShops() {
     document.getElementById('foodShop').style.display = 'none';
@@ -665,6 +670,8 @@
             localStorage.setItem('boughtClothes', JSON.stringify(boughtClothes));
             localStorage.setItem('boughtGames', JSON.stringify(boughtGames));
             localStorage.setItem('allSkins', JSON.stringify(allSkins));
+            localStorage.setItem('allGames', JSON.stringify(allGames));
+            localStorage.setItem('boughtGames', JSON.stringify(boughtGames));
             console.log('Игра сохранена:', { hearts, hunger, happiness, isSleeping, currentSkin, boughtClothes });
         } catch (e) {
             console.warn('Ошибка сохранения:', e);
@@ -681,6 +688,7 @@ function loadGame() {
         const savedBought = localStorage.getItem('boughtClothes');
         const savedGames = localStorage.getItem('boughtGames');
         const savedAllSkins = localStorage.getItem('allSkins');
+        const savedAllGames = localStorage.getItem('allGames');
 
         if (savedHearts !== null) hearts = parseInt(savedHearts, 10) || 0;
         if (savedHunger !== null) hunger = parseInt(savedHunger, 10) || 70;
@@ -693,6 +701,7 @@ function loadGame() {
         if (boughtClothes['pajamas'] === undefined) boughtClothes['pajamas'] = false;
         if (boughtClothes['kitty'] === undefined) boughtClothes['kitty'] = false;
         if (boughtClothes['psycho'] === undefined) boughtClothes['psycho'] = false; 
+        if (savedAllGames) allGames = JSON.parse(savedAllGames);
 
         const defaultSkins = [
             { id: 'pajamas', price: 200, icon: 'icon_skin_pajama.png', name: 'Пижамка' },
@@ -733,12 +742,7 @@ function loadGame() {
         isSleeping = false;
         updateUI();
     }
-    for (const [game, isBought] of Object.entries(boughtGames)) {
-        if (isBought) {
-            const priceElement = document.getElementById('gamePrice_' + game);
-            if (priceElement) priceElement.innerHTML = '✅';
-        }
-    }
+    
 }
 
 
@@ -919,18 +923,11 @@ function prevClothesPage() {
         return;
     }
     
-  
     if (boughtGames[gameId]) {
-        if (gameId === 'wheel') {
-            document.getElementById('gamesShop').style.display = 'none';
-            document.getElementById('wheelGame').style.display = 'flex';
-            document.getElementById('wheelView').style.display = 'block';
-            document.getElementById('prizeView').style.display = 'none';
-        }
+        openGame(gameId);
         return;
     }
     
-  
     if (hearts < price) {
         alert('Не хватает!');
         return;
@@ -939,16 +936,64 @@ function prevClothesPage() {
     hearts = hearts - price;
     boughtGames[gameId] = true;
     updateUI();
+    renderGamesShop();
     saveGame();
-    
-    const priceElement = document.getElementById('gamePrice_' + gameId);
-    if (priceElement) priceElement.innerHTML = '✅';
-    
+    openGame(gameId);
+}
+
+function openGame(gameId) {
     if (gameId === 'wheel') {
         document.getElementById('gamesShop').style.display = 'none';
         document.getElementById('wheelGame').style.display = 'flex';
         document.getElementById('wheelView').style.display = 'block';
         document.getElementById('prizeView').style.display = 'none';
+    }
+    // сюда другие игры
+}
+
+function renderGamesShop() {
+    const grid = document.getElementById('gamesGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const totalPages = Math.max(1, Math.ceil(allGames.length / GAMES_PER_PAGE));
+    if (gamesPage >= totalPages) gamesPage = totalPages - 1;
+
+    const start = gamesPage * GAMES_PER_PAGE;
+    const end = start + GAMES_PER_PAGE;
+    const pageGames = allGames.slice(start, end);
+
+    pageGames.forEach(game => {
+        const isBought = boughtGames[game.id];
+        const div = document.createElement('div');
+        div.className = 'food-item';
+        div.onclick = () => buyGame(game.id, game.price);
+
+        div.innerHTML = `
+            <img src="images/${game.icon}" alt="${game.name}">
+            <span class="food-price">
+                ${isBought ? '✅' : game.price + ' <img src="images/heart_icon.png" style="width: 20px; height: 20px; vertical-align: middle;">'}
+            </span>
+        `;
+        grid.appendChild(div);
+    });
+
+    document.getElementById('gamesPageIndicator').textContent = 
+        (gamesPage + 1) + ' / ' + totalPages;
+}
+
+function nextGamesPage() {
+    const totalPages = Math.max(1, Math.ceil(allGames.length / GAMES_PER_PAGE));
+    if (gamesPage < totalPages - 1) {
+        gamesPage++;
+        renderGamesShop();
+    }
+}
+
+function prevGamesPage() {
+    if (gamesPage > 0) {
+        gamesPage--;
+        renderGamesShop();
     }
 }
 
@@ -1151,6 +1196,7 @@ function showPrize(prize) {
     saveGame();
 }
 }
+
 document.getElementById('prizeView')?.addEventListener('click', function() {
     const iconContainer = document.getElementById('prizeIconContainer');
     iconContainer.classList.add('prize-pressed');
@@ -1192,6 +1238,7 @@ loadGame();
 startBlinking();
 updateUI();
 renderClothesShop();
+renderGamesShop();
 </script>
 
 </body>
