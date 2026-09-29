@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Izuru</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
 <style>
     * {
         -webkit-tap-highlight-color: transparent;
@@ -347,6 +350,42 @@
     font-size: 14px;
     font-weight: bold;
     color: #a22542;
+}
+
+.speech-bubble {
+    font-family: 'Damion', sans-serif;
+    position: fixed;
+    top: 20%;
+    left: 60%;
+    transform: translateX(-50%) scale(0);
+    background: rgba(255, 255, 255, 0.85);
+    padding: 15px 25px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 300;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    max-width: 80%;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.speech-bubble.show {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+}
+
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 30%;
+    transform: translateX(-50%);
+    border: 10px solid transparent;
+    border-top-color: white;
 }
 </style>
 </head>
@@ -1222,6 +1261,7 @@ document.getElementById('prizeView')?.addEventListener('click', function() {
             document.getElementById('wheelGame').style.display = 'none';
             window.closeWheelAfterPrize = false;
             eatAnimation();
+            showFoodPhrase();
         } else {
             const wheelImg = document.getElementById('wheelImg');
             wheelImg.style.transition = 'transform 0.5s ease';
@@ -1245,6 +1285,38 @@ function closeGame(gameId) {
     if (overlay) overlay.style.display = 'none';
 }
 
+const foodPhrases = [
+    'I love you, Nyasha',
+    'Nyasha is very cute.',
+    'Thank for concern',
+    'You’re so cute',
+    'Love you',
+    'My favorite food is your heart',
+    'Yummy',
+    'Thanks',
+];
+
+let speechBubbleTimer = null;
+
+function showFoodPhrase() {
+    const oldBubble = document.querySelector('.speech-bubble');
+    if (oldBubble) oldBubble.remove();
+    if (speechBubbleTimer) clearTimeout(speechBubbleTimer);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'speech-bubble';
+    bubble.textContent = foodPhrases[Math.floor(Math.random() * foodPhrases.length)];
+    document.body.appendChild(bubble);
+
+    setTimeout(() => bubble.classList.add('show'), 50);
+
+    speechBubbleTimer = setTimeout(() => {
+        bubble.classList.remove('show');
+        setTimeout(() => bubble.remove(), 300);
+        speechBubbleTimer = null;
+    }, 5000);
+}
+
 
 setInterval(saveGame, 1000);
 loadGame();
@@ -1256,4 +1328,3 @@ renderGamesShop();
 
 </body>
 </html>
-
