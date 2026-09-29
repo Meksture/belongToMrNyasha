@@ -1157,6 +1157,7 @@ function showPrize(prize) {
         
         document.getElementById('wheelView').style.display = 'block';
         return;
+        
     }
 
     document.getElementById('wheelView').style.display = 'none';
@@ -1179,8 +1180,20 @@ function showPrize(prize) {
         updateUI();
         saveGame();
     } else if (prize.type === 'skin') {
-    icon.src = `images/icon_skin_${prize.value}.png`;
-    text.textContent = '';
+    if (boughtClothes[prize.value]) {
+        icon.src = 'images/heart_icon.png';
+        text.textContent = 'Этот скин уже есть! +150';
+        hearts += 150;
+        updateUI();
+        saveGame();
+    } else {
+        icon.src = `images/icon_skin_${prize.value}.png`;
+        text.textContent = ' ';
+        
+        boughtClothes[prize.value] = true;
+        renderClothesShop();
+        saveGame();
+    }
     
     const skinExists = allSkins.find(s => s.id === prize.value);
     if (!skinExists) {
@@ -1243,3 +1256,4 @@ renderGamesShop();
 
 </body>
 </html>
+
