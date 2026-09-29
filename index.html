@@ -1128,12 +1128,14 @@ function showPrize(prize) {
         saveGame();
     } else if (prize.type === 'food') {
         icon.src = 'images/icon_spesh_food.png';
+        text.textContent = '';
         hunger = Math.max(0, hunger + prize.value);
         window.closeWheelAfterPrize = true;
         updateUI();
         saveGame();
     } else if (prize.type === 'skin') {
     icon.src = `images/icon_skin_${prize.value}.png`;
+    text.textContent = '';
     
     const skinExists = allSkins.find(s => s.id === prize.value);
     if (!skinExists) {
@@ -1149,7 +1151,6 @@ function showPrize(prize) {
     saveGame();
 }
 }
-
 document.getElementById('prizeView')?.addEventListener('click', function() {
     const iconContainer = document.getElementById('prizeIconContainer');
     iconContainer.classList.add('prize-pressed');
