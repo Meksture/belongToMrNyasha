@@ -554,6 +554,7 @@
 ];
     let allGames = [
     { id: 'wheel', price: 300, icon: 'icon_wheel.png', name: 'Колесо фортуны' },
+    { id: 'runner', price: 500, icon: 'icon_runner.png', name: 'Бегунок' },
 
 ];
 
@@ -565,8 +566,10 @@ const GAMES_PER_PAGE = 3;
     let isSleeping = false;
     let gameTimer = null;
     let eatInterval;
+    
     let boughtGames = {
     wheel: false,
+    runner: false,
 };
 
     function closeAllShops() {
@@ -618,7 +621,7 @@ const GAMES_PER_PAGE = 3;
     const isOpen = shop.style.display === 'block';
     closeAllShops();
     if (!isOpen) shop.style.display = 'block';
-}
+} 
 
     function buyFood(price, restoreAmount) {
         if (hearts < price) {
@@ -986,7 +989,15 @@ function openGame(gameId) {
         document.getElementById('wheelGame').style.display = 'flex';
         document.getElementById('wheelView').style.display = 'block';
         document.getElementById('prizeView').style.display = 'none';
+    }  else 
+    if (gameId === 'runner') {
+        document.getElementById('gamesShop').style.display = 'none';
+        document.getElementById('runnerGame').style.display = 'flex';
+        document.getElementById('runnerStartBtn').style.display = 'block';
+        document.getElementById('runnerScore').textContent = '0';
+        document.getElementById('runnerCharacter').style.bottom = '20%';
     }
+
     // сюда другие игры
 }
 
