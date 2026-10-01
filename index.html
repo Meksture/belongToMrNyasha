@@ -832,12 +832,28 @@ function loadGame() {
         if (savedSkin) currentSkin = savedSkin;
         if (savedBought) boughtClothes = JSON.parse(savedBought);
         if (savedGames) boughtGames = JSON.parse(savedGames);
-        if (savedAllSkins) allSkins = JSON.parse(savedAllSkins);
+        if (savedAllSkins) {
+            const savedSkinsArr = JSON.parse(savedAllSkins);
+    allSkins.forEach(skin => {
+        if (!savedSkinsArr.find(s => s.id === skin.id)) {
+            savedSkinsArr.push(skin);
+        }
+    });
+    allSkins = savedSkinsArr;
+}
         if (boughtClothes['wheel'] === undefined) boughtClothes['wheel'] = false;
         if (boughtClothes['pajamas'] === undefined) boughtClothes['pajamas'] = false;
         if (boughtClothes['kitty'] === undefined) boughtClothes['kitty'] = false;
         if (boughtClothes['psycho'] === undefined) boughtClothes['psycho'] = false; 
-        if (savedAllGames) allGames = JSON.parse(savedAllGames);
+        if (savedAllGames) {
+            const savedGamesArr = JSON.parse(savedAllGames);
+    allGames.forEach(game => {
+        if (!savedGamesArr.find(g => g.id === game.id)) {
+            savedGamesArr.push(game);
+        }
+    });
+    allGames = savedGamesArr;
+}
 
         const defaultSkins = [
             { id: 'pajamas', price: 200, icon: 'icon_skin_pajama.png', name: 'Пижамка' },
