@@ -405,17 +405,18 @@
     left: 0;
     width: 100%;
     height: 100%;
-    display: flex;
     overflow: hidden;
 }
 
 .runner-bg {
-    min-width: 100vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200vw;                   
     height: 100vh;
     background-image: url('images/bg_runner.png');
-    background-size: cover;
-    background-position: center;
-    flex-shrink: 0;
+    background-size: 100vw 100vh;   
+    background-repeat: repeat-x;     
 }
 
 .runner-bg.flipped {
@@ -426,8 +427,8 @@
     position: absolute;
     bottom: 20%;
     left: 15%;
-    width: 120px;
-    height: 120px;
+    width: 200px;
+    height: 200px;
     z-index: 5;
     transition: bottom 0.3s ease;
 }
@@ -601,20 +602,19 @@
     
     <div class="runner-bg-container">
         <div class="runner-bg" id="bg1"></div>
-        <div class="runner-bg flipped" id="bg2"></div>
     </div>
     
     <div id="runnerCharacter">
         <img id="runnerImg" src="images/runner_run1.png">
     </div>
     
-    <button id="runnerStartBtn" onclick="startRunner()" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; border-radius: 40px; border: none; background: #ff6b9d; color: white; font-size: 24px; font-weight: bold; cursor: pointer; z-index: 20;">Старт</button>
+    <button id="runnerStartBtn" onclick="startRunner()" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; border-radius: 40px; border: none; background: #630f0f; color: rgb(0, 0, 0); font-size: 24px; font-weight: bold; cursor: pointer; z-index: 20;">Старт</button>
     
     <div id="runnerGameOver" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(13, 5, 26, 0.95); padding: 40px; border-radius: 30px; text-align: center; z-index: 30;">
-        <div style="color: white; font-size: 28px; font-weight: bold; margin-bottom: 10px;"> Game over </div>
-        <div style="color: #ff6b9d; font-size: 24px; margin-bottom: 20px;" id="runnerFinalScore">0</div>
-        <div style="color: #ffd700; font-size: 20px; margin-bottom: 20px;" id="runnerHearts">+0</div>
-        <button onclick="restartRunner()" style="padding: 15px 30px; border-radius: 30px; border: none; background: #ff6b9d; color: white; font-size: 18px; font-weight: bold; cursor: pointer;">Ещё раз</button>
+        <div style="color: rgb(180, 0, 0); font-size: 28px; font-weight: bold; margin-bottom: 10px;">game over</div>
+        <div style="color: rgb(180, 0, 0); font-size: 24px; margin-bottom: 20px;" id="runnerFinalScore">0</div>
+        <div style="color: rgb(180, 0, 0); font-size: 20px; margin-bottom: 20px;" id="runnerHearts">+0 hearts</div>
+        <button onclick="restartRunner()" style="padding: 15px 30px; border-radius: 30px; border: none; background: #c70000; color: rgb(0, 0, 0); font-size: 18px; font-weight: bold; cursor: pointer;">Ещё раз</button>
     </div>
 </div>
 
@@ -1437,6 +1437,225 @@ function showFoodPhrase() {
         speechBubbleTimer = null;
     }, 5000);
 }
+
+
+
+let runnerInterval = null;
+let runnerScore = 0;
+let runnerSpeed = 6;
+let lastSpeedIncrease = 0;
+let bgOffset = 0;
+let isRunnerJumping = false;
+let isRunnerActive = false;
+let runnerFrame = 0;
+let frameCounter = 0;
+let obstacleTimer = 0;
+let obstacles = [];
+let obstacleIdCounter = 0;
+
+const HEARTS_PER_SCORE = 10;
+
+function startRunner() {
+    document.getElementById('runnerStartBtn').style.display = 'none';
+    document.getElementById('runnerGameOver').style.display = 'none';
+    
+    runnerScore = 0;
+    runnerSpeed = 6;
+    lastSpeedIncrease = 0;
+    bgOffset = 0;
+    isRunnerActive = true;
+    runnerFrame = 0;
+    frameCounter = 0;
+    obstacleTimer = 0;
+    
+
+    obstacles.forEach(o => o.element.remove());
+    obstacles = [];
+    
+    document.getElementById('runnerScore').textContent = '0';
+    
+    if (runnerInterval) clearInterval(runnerInterval);
+    runnerInterval = setInterval(updateRunner, 16);
+}
+
+function updateRunner() {
+    if (!isRunnerActive) return;
+    
+
+    bgOffset -= runnerSpeed;
+    
+
+    if (bgOffset <= -window.innerWidth) {
+        bgOffset += window.innerWidth;
+    }
+    
+    const bg1 = document.getElementById('bg1');
+    if (bg1) bg1.style.transform = `translateX(${bgOffset}px)`;
+    
+
+    frameCounter++;
+    if (frameCounter >= 10) {
+        frameCounter = 0;
+        runnerFrame = (runnerFrame + 1) % 2;
+        const runnerImg = document.getElementById('runnerImg');
+        if (runnerImg) {
+            runnerImg.src = runnerFrame === 0 ? 'images/runner_run1.png' : 'images/runner_run2.png';
+        }
+    }
+    
+
+    runnerScore += 1;
+    document.getElementById('runnerScore').textContent = Math.floor(runnerScore / 20); 
+
+    const currentScore = Math.floor(runnerScore / 7);
+
+    if (currentScore >= lastSpeedIncrease + 50 && runnerSpeed < 15) {
+        runnerSpeed += 0.5;
+        lastSpeedIncrease += 50;
+    }
+    
+
+    obstacleTimer++;
+    if (obstacleTimer >= 90) {
+        obstacleTimer = 0;
+        spawnObstacle();
+    }
+    
+    moveObstacles();
+}
+
+function spawnObstacle() {
+    const isBig = Math.random() > 0.5;
+    const width = isBig ? 100 : 70;
+    const height = isBig ? 140 : 100;
+    
+    const obstacle = document.createElement('div');
+    obstacle.className = 'runner-obstacle';
+    obstacle.id = 'obstacle_' + (obstacleIdCounter++);
+    obstacle.style.right = '-150px';
+    obstacle.style.width = width + 'px';
+    obstacle.style.height = height + 'px';
+    obstacle.innerHTML = `<img src="images/${isBig ? 'runner_cactus2.png' : 'runner_cactus1.png'}">`;
+    document.getElementById('runnerGame').appendChild(obstacle);
+    
+    obstacles.push({
+        element: obstacle,
+        right: -150,
+        width: width,
+        height: height,
+        isBig: isBig
+    });
+}
+
+function moveObstacles() {
+    const character = document.getElementById('runnerCharacter');
+    const charRect = character.getBoundingClientRect();
+    
+    const charCenterX = charRect.left + charRect.width / 2;
+    const charCenterY = charRect.top + charRect.height / 2;
+    
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        o.right += runnerSpeed;
+        o.element.style.right = o.right + 'px';
+        
+        const obsRect = o.element.getBoundingClientRect();
+        
+        const obsCenterX = obsRect.left + obsRect.width / 2;
+        const obsCenterY = obsRect.top + obsRect.height / 2;
+        
+        const COLLISION_RADIUS = 80; 
+        
+        const distX = Math.abs(charCenterX - obsCenterX);
+        const distY = Math.abs(charCenterY - obsCenterY);
+        
+        if (distX < COLLISION_RADIUS && distY < COLLISION_RADIUS) {
+            endRunner();
+            return;
+        }
+        
+        if (o.right > window.innerWidth + 200) {
+            o.element.remove();
+            obstacles.splice(i, 1);
+        }
+    }
+}
+
+function jumpRunner() {
+    if (!isRunnerActive || isRunnerJumping) return;
+    isRunnerJumping = true;
+    
+    const character = document.getElementById('runnerCharacter');
+    character.style.bottom = '45%';
+    
+    setTimeout(() => {
+        character.style.bottom = '20%';
+        setTimeout(() => {
+            isRunnerJumping = false;
+        }, 250);
+    }, 500);
+}
+
+function endRunner() {
+    isRunnerActive = false;
+    if (runnerInterval) {
+        clearInterval(runnerInterval);
+        runnerInterval = null;
+    }
+    
+
+    const finalScore = Math.floor(runnerScore / 7);
+    const earnedHearts = Math.floor(finalScore / HEARTS_PER_SCORE);
+    
+    document.getElementById('runnerFinalScore').textContent = 'Счёт: ' + finalScore;
+    document.getElementById('runnerHearts').textContent = '+' + earnedHearts + ' ❤️';
+    document.getElementById('runnerGameOver').style.display = 'block';
+    
+
+    if (earnedHearts > 0) {
+        hearts += earnedHearts;
+        updateUI();
+        saveGame();
+    }
+    
+
+    obstacles.forEach(o => o.element.remove());
+    obstacles = [];
+}
+
+function restartRunner() {
+    startRunner();
+}
+
+function closeRunner() {
+    isRunnerActive = false;
+    if (runnerInterval) {
+        clearInterval(runnerInterval);
+        runnerInterval = null;
+    }
+    
+
+    obstacles.forEach(o => o.element.remove());
+    obstacles = [];
+    
+    document.getElementById('runnerGame').style.display = 'none';
+}
+
+document.getElementById('runnerGame')?.addEventListener('click', function(e) {
+    if (e.target.closest('.close-btn')) return;
+    if (e.target.closest('#runnerStartBtn')) return;
+    if (e.target.closest('#runnerGameOver')) return;
+    if (!isRunnerActive) return;
+    jumpRunner();
+});
+
+
+document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space' && isRunnerActive) {
+        e.preventDefault();
+        jumpRunner();
+    }
+});
 
 
 setInterval(saveGame, 1000);
