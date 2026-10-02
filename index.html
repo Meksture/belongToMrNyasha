@@ -1539,8 +1539,8 @@ function updateRunner() {
 
 function spawnObstacle() {
     const isBig = Math.random() > 0.5;
-    const width = isBig ? 12 + 'vh' : 9 + 'vh';
-    const height = isBig ? 17 + 'vh' : 12 + 'vh';
+    const width = isBig ? 13 + 'vh' : 10 + 'vh';
+    const height = isBig ? 18 + 'vh' : 13 + 'vh';
     
     const obstacle = document.createElement('div');
     obstacle.className = 'runner-obstacle';
@@ -1564,10 +1564,10 @@ function moveObstacles() {
     const character = document.getElementById('runnerCharacter');
     const charRect = character.getBoundingClientRect();
     
-    const charLeft = charRect.left + charRect.width * 0.3;
-    const charRight = charRect.right - charRect.width * 0.3;
-    const charTop = charRect.top + charRect.height * 0.3;
-    const charBottom = charRect.bottom - charRect.height * 0.3;
+    const charLeft = charRect.left + charRect.width * 0.15;
+    const charRight = charRect.right - charRect.width * 0.15;
+    const charTop = charRect.top + charRect.height * 0.15;
+    const charBottom = charRect.bottom - charRect.height * 0.15;
     
     for (let i = obstacles.length - 1; i >= 0; i--) {
         const o = obstacles[i];
@@ -1576,10 +1576,10 @@ function moveObstacles() {
         
         const obsRect = o.element.getBoundingClientRect();
         
-        const obsLeft = obsRect.left + obsRect.width * 0.4;
-        const obsRight = obsRect.right - obsRect.width * 0.4;
-        const obsTop = obsRect.top + obsRect.height * 0.4;
-        const obsBottom = obsRect.bottom - obsRect.height * 0.4;
+        const obsLeft = obsRect.left + obsRect.width * 0.15;
+        const obsRight = obsRect.right - obsRect.width * 0.15;
+        const obsTop = obsRect.top + obsRect.height * 0.15;
+        const obsBottom = obsRect.bottom - obsRect.height * 0.15;
         
         if (
             charRight > obsLeft &&
