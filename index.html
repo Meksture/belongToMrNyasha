@@ -1539,8 +1539,8 @@ function updateRunner() {
 
 function spawnObstacle() {
     const isBig = Math.random() > 0.5;
-    const width = isBig ? 10 + 'vh' : 7 + 'vh';
-    const height = isBig ? 15 + 'vh' : 10 + 'vh';
+    const width = isBig ? 12 + 'vh' : 9 + 'vh';
+    const height = isBig ? 17 + 'vh' : 12 + 'vh';
     
     const obstacle = document.createElement('div');
     obstacle.className = 'runner-obstacle';
@@ -1564,8 +1564,10 @@ function moveObstacles() {
     const character = document.getElementById('runnerCharacter');
     const charRect = character.getBoundingClientRect();
     
-    const charCenterX = charRect.left + charRect.width / 2;
-    const charCenterY = charRect.top + charRect.height / 2;
+    const charLeft = charRect.left + charRect.width * 0.3;
+    const charRight = charRect.right - charRect.width * 0.3;
+    const charTop = charRect.top + charRect.height * 0.3;
+    const charBottom = charRect.bottom - charRect.height * 0.3;
     
     for (let i = obstacles.length - 1; i >= 0; i--) {
         const o = obstacles[i];
@@ -1574,15 +1576,17 @@ function moveObstacles() {
         
         const obsRect = o.element.getBoundingClientRect();
         
-        const obsCenterX = obsRect.left + obsRect.width / 2;
-        const obsCenterY = obsRect.top + obsRect.height / 2;
+        const obsLeft = obsRect.left + obsRect.width * 0.4;
+        const obsRight = obsRect.right - obsRect.width * 0.4;
+        const obsTop = obsRect.top + obsRect.height * 0.4;
+        const obsBottom = obsRect.bottom - obsRect.height * 0.4;
         
-        const COLLISION_RADIUS = 80; 
-        
-        const distX = Math.abs(charCenterX - obsCenterX);
-        const distY = Math.abs(charCenterY - obsCenterY);
-        
-        if (distX < COLLISION_RADIUS && distY < COLLISION_RADIUS) {
+        if (
+            charRight > obsLeft &&
+            charLeft < obsRight &&
+            charBottom > obsTop &&
+            charTop < obsBottom
+        ) {
             endRunner();
             return;
         }
