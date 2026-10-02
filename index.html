@@ -427,8 +427,8 @@
     position: absolute;
     bottom: 20%;
     left: 15%;
-    width: 200px;
-    height: 200px;
+    width: 25vh;
+    height: 25vh;
     z-index: 5;
     transition: bottom 0.3s ease;
 }
@@ -455,6 +455,11 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+#rotateMessage {
+    font-family: 'Nunito', sans-serif;
+    font-weight: bold;
 }
 </style>
 </head>
@@ -616,6 +621,10 @@
         <div style="color: rgb(180, 0, 0); font-size: 20px; margin-bottom: 20px;" id="runnerHearts">+0 hearts</div>
         <button onclick="restartRunner()" style="padding: 15px 30px; border-radius: 30px; border: none; background: #c70000; color: rgb(0, 0, 0); font-size: 18px; font-weight: bold; cursor: pointer;">Ещё раз</button>
     </div>
+</div>
+
+<div id="rotateMessage" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 5, 26, 0.95); color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; text-align: center; z-index: 100;">
+    Поверни телефон!
 </div>
 
     <div id="petHand" style="display: none; position:absolute; z-index: 15; pointer-events: none;">
@@ -1106,6 +1115,8 @@ function openGame(gameId) {
         document.getElementById('runnerStartBtn').style.display = 'block';
         document.getElementById('runnerScore').textContent = '0';
         document.getElementById('runnerCharacter').style.bottom = '20%';
+
+        checkOrientation();
     }
 
     // сюда другие игры
@@ -1526,8 +1537,8 @@ function updateRunner() {
 
 function spawnObstacle() {
     const isBig = Math.random() > 0.5;
-    const width = isBig ? 100 : 70;
-    const height = isBig ? 140 : 100;
+    const width = isBig ? 10 + 'vh' : 7 + 'vh';
+    const height = isBig ? 15 + 'vh' : 10 + 'vh';
     
     const obstacle = document.createElement('div');
     obstacle.className = 'runner-obstacle';
@@ -1656,6 +1667,31 @@ document.addEventListener('keydown', function(e) {
         jumpRunner();
     }
 });
+
+function checkOrientation() {
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const rotateMsg = document.getElementById('rotateMessage');
+    const runnerWindow = document.getElementById('runnerGame');
+    
+    if (!runnerWindow || runnerWindow.style.display === 'none') return;
+    
+    if (isPortrait) {
+        rotateMsg.style.display = 'flex';
+        if (isRunnerActive) {
+            isRunnerActive = false;
+            if (runnerInterval) {
+                clearInterval(runnerInterval);
+                runnerInterval = null;
+            }
+        }
+    } else {
+        rotateMsg.style.display = 'none';
+    }
+}
+
+
+window.addEventListener('resize', checkOrientation);
+window.addEventListener('orientationchange', checkOrientation);
 
 
 setInterval(saveGame, 1000);
