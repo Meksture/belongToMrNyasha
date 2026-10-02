@@ -1546,8 +1546,8 @@ function spawnObstacle() {
     obstacle.className = 'runner-obstacle';
     obstacle.id = 'obstacle_' + (obstacleIdCounter++);
     obstacle.style.right = '-150px';
-    obstacle.style.width = width + 'px';
-    obstacle.style.height = height + 'px';
+    obstacle.style.width = width;
+    obstacle.style.height = height;
     obstacle.innerHTML = `<img src="images/${isBig ? 'runner_cactus2.png' : 'runner_cactus1.png'}">`;
     document.getElementById('runnerGame').appendChild(obstacle);
     
