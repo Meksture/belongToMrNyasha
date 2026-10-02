@@ -427,8 +427,8 @@
     position: absolute;
     bottom: 20%;
     left: 15%;
-    width: 25vh;
-    height: 25vh;
+    width: 130px;
+    height: 130px;
     z-index: 5;
     transition: bottom 0.3s ease;
 }
@@ -613,7 +613,14 @@
         <img id="runnerImg" src="images/runner_run1.png">
     </div>
     
-    <button id="runnerStartBtn" onclick="startRunner()" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; border-radius: 40px; border: none; background: #630f0f; color: rgb(0, 0, 0); font-size: 24px; font-weight: bold; cursor: pointer; z-index: 20;">Старт</button>
+    <div id="runnerStartBlock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 20;">
+    <div style="color: white; font-size: 18px; margin-bottom: 15px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+         Для удобства поверни телефон ↔️
+    </div>
+    <button id="runnerStartBtn" onclick="startRunner()" style="padding: 20px 40px; border-radius: 40px; border: none; background: #630f0f; color: white; font-size: 24px; font-weight: bold; cursor: pointer;">
+        Старт
+    </button>
+   </div>
     
     <div id="runnerGameOver" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(13, 5, 26, 0.95); padding: 40px; border-radius: 30px; text-align: center; z-index: 30;">
         <div style="color: rgb(180, 0, 0); font-size: 28px; font-weight: bold; margin-bottom: 10px;">game over</div>
@@ -623,9 +630,6 @@
     </div>
 </div>
 
-<div id="rotateMessage" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 5, 26, 0.95); color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; text-align: center; z-index: 100;">
-    Поверни телефон!
-</div>
 
     <div id="petHand" style="display: none; position:absolute; z-index: 15; pointer-events: none;">
         <img src="images/icon_petpet.png" style="width: 90px; height: 90px; animation: floatPet 0.8s ease infinite alternate;">
@@ -1112,11 +1116,9 @@ function openGame(gameId) {
     if (gameId === 'runner') {
         document.getElementById('gamesShop').style.display = 'none';
         document.getElementById('runnerGame').style.display = 'flex';
-        document.getElementById('runnerStartBtn').style.display = 'block';
+        document.getElementById('runnerStartBlock').style.display = 'block';
         document.getElementById('runnerScore').textContent = '0';
         document.getElementById('runnerCharacter').style.bottom = '20%';
-
-        checkOrientation();
     }
 
     // сюда другие игры
@@ -1467,7 +1469,7 @@ let obstacleIdCounter = 0;
 const HEARTS_PER_SCORE = 10;
 
 function startRunner() {
-    document.getElementById('runnerStartBtn').style.display = 'none';
+    document.getElementById('runnerStartBlock').style.display = 'none';
     document.getElementById('runnerGameOver').style.display = 'none';
     
     runnerScore = 0;
@@ -1516,7 +1518,7 @@ function updateRunner() {
     
 
     runnerScore += 1;
-    document.getElementById('runnerScore').textContent = Math.floor(runnerScore / 20); 
+    document.getElementById('runnerScore').textContent = Math.floor(runnerScore / 7); 
 
     const currentScore = Math.floor(runnerScore / 7);
 
@@ -1668,30 +1670,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-function checkOrientation() {
-    const isPortrait = window.innerHeight > window.innerWidth;
-    const rotateMsg = document.getElementById('rotateMessage');
-    const runnerWindow = document.getElementById('runnerGame');
-    
-    if (!runnerWindow || runnerWindow.style.display === 'none') return;
-    
-    if (isPortrait) {
-        rotateMsg.style.display = 'flex';
-        if (isRunnerActive) {
-            isRunnerActive = false;
-            if (runnerInterval) {
-                clearInterval(runnerInterval);
-                runnerInterval = null;
-            }
-        }
-    } else {
-        rotateMsg.style.display = 'none';
-    }
-}
-
-
-window.addEventListener('resize', checkOrientation);
-window.addEventListener('orientationchange', checkOrientation);
 
 
 setInterval(saveGame, 1000);
